@@ -1,23 +1,36 @@
 #!/bin/bash
 
-if [ -d "$1" ]
+if [ -z "${1}" ]
 then
-	echo "$1 already exists"
+	echo "Usage: $0 <package/basename>"
+	exit 1
+fi 
+
+package="$(<<< "${1}" sed -e 's/\.deb$//')"
+
+if [ -d "${package}_mod" ]
+then
+	echo "${package} was already extracted"
 	exit 1
 fi
 
-mkdir "$1"
+mkdir "${package}_mod"
 
-pushd "$1"
+pushd "${package}_mod"
 
 	mkdir output original original/data original/control
 
 	pushd original
-		if ! apt-get download "$1"
+
+		if [ -f "../../${package}.deb" ]
 		then
-			echo "could not find $1"
+			cp "../../${package}.deb" .
+		elif ! apt-get download "${package}"
+		then
+			echo "could not find ${package}"
 			exit 1
 		fi
+
 		ar x *.deb
 
 		pushd control

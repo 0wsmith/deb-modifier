@@ -1,14 +1,27 @@
 #!/bin/bash
 
-if ! [ -d "$1" ]
+if [ -z "${1}" ]
 then
-	echo "$1 doesnt exist"
+	echo "Usage: $0 <package/basename>"
+	exit 1
+fi 
+
+package="$(<<< "${1}" sed -e 's/\.deb$//')"
+
+if ! [ -d "${package}_mod" ]
+then
+	echo "${package} was not extracted"
 	exit 1
 fi
 
-pushd "$1"
+pushd "${package}_mod"
 
 	pushd output
+
+		newname="$(grep -oP 'Package: \K.+' control/control)"
+		newvers="$(grep -oP 'Version: \K.+' control/control)"
+		newarch="$(grep -oP 'Architecture: \K.+' control/control)"
+		newfile="${newname}_${newvers}_${newarch}"
 
 		pushd data
 			tar zcf ../data.tar.gz .
@@ -18,7 +31,7 @@ pushd "$1"
 			tar zcf ../control.tar.gz .
 		popd
 
-		ar rcs out.deb debian-binary control.tar.gz data.tar.gz
+		ar rcs "${newfile}.deb" debian-binary control.* data.*
 
 	popd
 
