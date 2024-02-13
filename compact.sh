@@ -24,6 +24,10 @@ pushd "${package}_mod"
 		newfile="${newname}_${newvers}_${newarch}"
 
 		pushd data
+			for checksum in md5sum sha256sum sha512sum
+			do
+				find * -type f -exec "${checksum}" {} \; > "../control/${checksum}s"
+			done
 			tar zcf ../data.tar.gz .
 		popd
 
